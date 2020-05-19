@@ -5,9 +5,44 @@ import sys
 class CPU:
     """Main CPU class."""
 
+    #day 1 code
+    #load immedirate (save the value)
+    #constructing cpu and other functions
+    
     def __init__(self):
         """Construct a new CPU."""
+        self.ram =  [0] * 256               # 256 bytes of memories
+        self.reg = [0] * 8                  # 8 registers
+        self.pc = 0                         # program counter
+        self.halted = False                 # halt
+
+    def ram_read(self, mar):               # MAR (Memory Address Register)
+        return self.ram[mar]               # contains address being read or written to
+
+    def ram_write(self, mar, mdr):         # MDR (Memory Data Register)
+        self.ram[mar] = mdr                # data that was read or data to write
+
+    # LDI   Load "Immediate"
+    def LDI(self):
         pass
+
+    # Print
+    def PRN(self, mar):
+        print(self.ram_read(mar))
+
+    # Halt
+    def HLT(self):
+        self.halted = True
+
+    # Run
+    def run(self):
+        """Run the CPU."""
+        while self.exit == False:
+            self.reg[-1] = 0xF4
+            self.pc = 0
+            self.fl = 0
+
+    #end of day 1
 
     def load(self):
         """Load a program into memory."""
@@ -29,6 +64,9 @@ class CPU:
         for instruction in program:
             self.ram[address] = instruction
             address += 1
+
+
+
 
 
     def alu(self, op, reg_a, reg_b):
@@ -60,6 +98,4 @@ class CPU:
 
         print()
 
-    def run(self):
-        """Run the CPU."""
-        pass
+
