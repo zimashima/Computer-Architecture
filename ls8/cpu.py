@@ -14,6 +14,7 @@ class CPU:
         self.reg = [0] * 8                  # 8 registers
         self.pc = 0                         # program counter
         self.halted = False                 # halt
+        self.sp = 0xf4                      # stack pointer
 
     def ram_read(self, mar):               # MAR (Memory Address Register)
         return self.ram[mar]               # contains address being read or written to
@@ -33,25 +34,36 @@ class CPU:
         self.halted = True
         self.pc += 1
 
+    def PUSH(self):
+        self.reg[self.sp] -= 1                      #decrement stack pointer by 1
+        mdr = self.reg[self.ram_read(self.pc+1)]    #get the value out of register
+        mar = self.reg[self.sp]
+        self.ram_write(mdr, mar)                    #save in memory
+        self.pc += 2                                #used 2 bits of memories
+
+    def POP(self):
+        self.reg[self.sp] += 1                      #increment stack pointer by 1
+
     def MUL(self):
-        self.alu("MUL", self.ram_read(self.pc+1), self.ram_read(self.pc+2))
+        operand_a = self.ram_read(self.pc+1)
+        operand_b = self.ram_read(self.pc+2)
+        self.alu("MUL", operand_a, operand_b)
         self.pc +=3
 
     def run(self):                          # Run the CPU
-
+        self.pc = 0
         #hash table because it's cooler than if-elif
         run_instruction = {
-            162: self.MUL(),
-            131: self.LDI(),
-            71: self.PRN(),
-            1: self.HLT()
+            130: self.LDI,
+            71: self.PRN,
+            162: self.MUL,
+            1: self.HLT
         }
 
         while not self.halted:
             IR = self.ram_read(self.pc)     # Instruction Register (IR)
-            run_instruction[IR]
-            print(IR)
-            print(run_instruction[IR])
+            run_instruction[IR]()
+
         self.halted = True
 
     def load(self):
