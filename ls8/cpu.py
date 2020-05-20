@@ -10,7 +10,6 @@ class CPU:
     #constructing cpu and other functions
     
     def __init__(self):
-        """Construct a new CPU."""
         self.ram =  [0] * 256               # 256 bytes of memories
         self.reg = [0] * 8                  # 8 registers
         self.pc = 0                         # program counter
@@ -19,62 +18,60 @@ class CPU:
     def ram_read(self, mar):               # MAR (Memory Address Register)
         return self.ram[mar]               # contains address being read or written to
 
-    def ram_write(self, mar, mdr):         # MDR (Memory Data Register)
+    def ram_write(self, mdr, mar):         # MDR (Memory Data Register)
         self.ram[mar] = mdr                # data that was read or data to write
+            
+    def LDI(self):                          # store a value in a register
+        self.reg[self.ram_read(self.pc+1)] = self.ram_read(self.pc+2)
+        self.pc += 3
+                              
+    def PRN(self):                     # print value in a register
+        print(f'value: {self.reg[self.ram_read(self.pc+1)]}')
+        self.pc += 2
+    
+    def HLT(self):                          # Halt
+        self.halted = True
+        self.pc += 1
 
-    # LDI   Load "Immediate"
-    def LDI(self):
-        pass
+    def MUL(self):
+        self.alu("MUL", self.ram_read(self.pc+1), self.ram_read(self.pc+2))
+        self.pc +=3
 
-    # Print
-    def PRN(self, mar):
-        print(self.ram_read(mar))
+    def run(self):                          # Run the CPU
 
-    # Halt
-    def HLT(self):
+        #hash table because it's cooler than if-elif
+        run_instruction = {
+            162: self.MUL(),
+            131: self.LDI(),
+            71: self.PRN(),
+            1: self.HLT()
+        }
+
+        while not self.halted:
+            IR = self.ram_read(self.pc)     # Instruction Register (IR)
+            run_instruction[IR]
+            print(IR)
+            print(run_instruction[IR])
         self.halted = True
 
-    # Run
-    def run(self):
-        """Run the CPU."""
-        while self.exit == False:
-            self.reg[-1] = 0xF4
-            self.pc = 0
-            self.fl = 0
-
-    #end of day 1
-
     def load(self):
-        """Load a program into memory."""
-
         address = 0
-
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
-
-
+        with open(sys.argv[1]) as func:
+            for line in func:
+                string_val = line.split("#")[0].strip()
+                if string_val == '':
+                    continue
+                v = int(string_val, 2)
+                self.ram[address] = v
+                address += 1
 
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
