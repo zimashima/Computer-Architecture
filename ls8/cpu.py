@@ -1,6 +1,7 @@
 """CPU functionality."""
 
 import sys
+import operator
 
 class CPU:
     """Main CPU class."""
@@ -47,6 +48,14 @@ class CPU:
         self.sp += 1                                                   #increment stack pointer by one
         self.pc +=2                                                    
 
+    #CALL return addr gets pushed on the stack
+    def CALL(self):
+        pass
+
+    #RETURN return addr gets popped off the stack
+    def RET(self):
+        pass
+
     def MUL(self):
         operand_a = self.ram_read(self.pc+1)
         operand_b = self.ram_read(self.pc+2)
@@ -60,9 +69,11 @@ class CPU:
         #hash table because it's cooler than if-elif
         run_instruction = {
             1: self.HLT,
+            17: self.RET,
             71: self.PRN,
             69: self.PUSH,
             70: self.POP,
+            80: self.CALL,
             130: self.LDI,
             162: self.MUL,
         }
@@ -87,12 +98,18 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        elif op == "MUL":
-            self.reg[reg_a] *= self.reg[reg_b]
-        else:
-            raise Exception("Unsupported ALU operation")
+        #again, hash table because it is cooler than if-else
+        ops = {
+            "ADD" : lambda x,y: x+y,
+            "MUL" : lambda x,y: x*y,
+            "DIV" : lambda x,y: x/y,
+            "SUB" : lambda x,y: x-y
+        }
+        try:
+            self.reg[reg_a] = ops[op](self.reg[reg_a], self.reg[reg_b])
+            return self.reg[reg_a]
+        except:
+            raise("Unsupported ALU operation")
 
     def trace(self):
         """
