@@ -14,7 +14,7 @@ class CPU:
         self.reg = [0] * 8                  # 8 registers
         self.pc = 0                         # program counter
         self.halted = False                 # halt
-        self.sp = 0xf4                      # stack pointer
+        self.sp = 0xF4                         # stack pointer
 
     def ram_read(self, mar):               # MAR (Memory Address Register)
         return self.ram[mar]               # contains address being read or written to
@@ -35,14 +35,17 @@ class CPU:
         self.pc += 1
 
     def PUSH(self):
-        self.reg[self.sp] -= 1                      #decrement stack pointer by 1
-        mdr = self.reg[self.ram_read(self.pc+1)]    #get the value out of register
-        mar = self.reg[self.sp]
-        self.ram_write(mdr, mar)                    #save in memory
-        self.pc += 2                                #used 2 bits of memories
+        self.sp -= 1                                    #decrement by 1
+        reg_a = self.ram_read(self.pc+1)                                 
+        self.ram_write(self.reg[reg_a], self.sp)        #save the value in that RAM address
+        self.pc += 2                                    
 
     def POP(self):
-        self.reg[self.sp] += 1                      #increment stack pointer by 1
+        if self.sp == 0xF4:
+            return 'Stack is Empty'
+        self.reg[self.ram_read(self.pc+1)] = self.ram_read(self.sp)    #assign the value to that register
+        self.sp += 1                                                   #increment stack pointer by one
+        self.pc +=2                                                    
 
     def MUL(self):
         operand_a = self.ram_read(self.pc+1)
@@ -50,14 +53,18 @@ class CPU:
         self.alu("MUL", operand_a, operand_b)
         self.pc +=3
 
-    def run(self):                          # Run the CPU
+
+    # Run the CPU
+    def run(self):                          
         self.pc = 0
         #hash table because it's cooler than if-elif
         run_instruction = {
-            130: self.LDI,
+            1: self.HLT,
             71: self.PRN,
+            69: self.PUSH,
+            70: self.POP,
+            130: self.LDI,
             162: self.MUL,
-            1: self.HLT
         }
 
         while not self.halted:
